@@ -1,0 +1,27 @@
+{
+  "type": "module",
+  "name": "configuration-evolution-over-time.time-machine",
+  "version": "1.0.0",
+  "description": "This project works as a \"time machine\" that tracks commits made to another repository.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahn-nath/configuration-evolution-over-time.time-machine.git"
+  },
+  "keywords": [
+    "github-resp-api"
+  ],
+  "author": "ahn-nath",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ahn-nath/configuration-evolution-over-time.time-machine/issues"
+  },
+  "homepage": "https://github.com/ahn-nath/configuration-evolution-over-time.time-machine#readme",
+  "dependencies": {
+    "node-fetch": "^3.3.1",
+    "octokit": "^2.0.14"
+  }
+}
