@@ -45,11 +45,7 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
       var commitsContents = ["Y2l0eSx0ZW1wZXJhdHVyZQpHcmFuZCBGb3JrcywtNDEKQmVybGluLDQuMQpP\nb2RuYWRhdHRhLDQxCg==\n"]
   }
 
-    let decodedContent = Buffer.from(commitsContents[0], 'base64').toString('ascii')
-    console.log(decodedContent)
-
     // decode the content of the commit and split by line break
-    console.log("DECODED CONTENT");
     for (let i = 0; i < commitsContents.length; i++) {
       let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('ascii').split("/\r?\n/");
       console.log(`decodedContentCommit: ${decodedContent}`)
