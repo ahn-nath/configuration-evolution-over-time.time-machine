@@ -61,8 +61,8 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
       //  for each loop of the decodedContent to add each line to the CSV string
       for(let j = 1; j < decodedContent.length; j++){
 
-        /* We check if the line is valid by checking if it matches the regex for a city name (Spanish or English) and a (positive or negative) temperature
-          // [a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+ : it catches any word that starts with a letter and has any number of letters, including accents
+        /* We check if the line is valid by checking if it matches the regex below:
+          // [a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+ : it catches any word that starts with a letter and has any number of letters, including accents from the Spanish language
           // (?:[\s-][a-zA-Z]+)* : after the first word, it catches any number of words that start with a space or a dash and have any number of letters (optional)
           // , : it catches a comma after the first word or (optional) following group of words
           // [-+]?[0-9]*\.?[0-9]+$/  : it catches a number that can be positive or negative, with or without decimals
