@@ -54,35 +54,39 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
       var commitsContents = ["Y2l0eSx0ZW1wZXJhdHVyZQpHcmFuZCBGb3JrcywtNDEKQmVybGluLDQuMQpP\nb2RuYWRhdHRhLDQxCg==\n"]
   }
 
-    // decode the content of the commit and split by line break
+    // decode the commit content (base64) and split by line break
     for (let i = 0; i < commitsContents.length; i++) {
-      let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('ascii').split("/\r?\n/");
+      let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('ascii').split("\n");
 
-      //  for each loop of the decodedContent
-      for(let j = 1; j < decodedContent.length; j++) {
-        // if line is not empty
-        // TODO: here we could use a regex that checks if the first part of the string is a city name in English or Spanish, followed by a comma and a positive or negative number
-        // regex example: /^[a-zA-Z]+,[-+]?[0-9]*\.?[0-9]+$/
-        if(decodedContent[j] != "") {
-          // add the date of the commit to the line
-          let line = decodedContent[j] + "," + dates[i] + "\n";
-          csvContent += line;
-          console.log(`line: ${line}`)
+      //  for each loop of the decodedContent to add each line to the CSV string
+      for(let j = 1; j < decodedContent.length; j++){
+
+        /* We check if the line is valid by checking if it matches the regex for a city name (Spanish or English) and a (positive or negative) temperature
+          // [a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+ : it catches any word that starts with a letter and has any number of letters, including accents
+          // (?:[\s-][a-zA-Z]+)* : after the first word, it catches any number of words that start with a space or a dash and have any number of letters (optional)
+          // , : it catches a comma after the first word or (optional) following group of words
+          // [-+]?[0-9]*\.?[0-9]+$/  : it catches a number that can be positive or negative, with or without decimals
+        */
+        if(/[a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+(?:[\s-][a-zA-Z]+)*,[-+]?[0-9]*\.?[0-9]+$/.test(decodedContent[j])) {
+          csvContent = decodedContent[j] + "," + dates[i] + "\n";
         }
     }
   }
     
-
+  if(csvContent) {
     // export CSV file and update contents of the last_date JSON file
     fs.writeFileSync("city_temperature_data.csv", csvContent, (err) => {
       console.log(err || "We have successfully updated the CSV file!");
     });
 
     last_date_json["last_date"] = dates[dates.length - 1];
-    fs.writeFileSync("last_date.json", last_date_json, (err) => {
+    fs.writeFileSync("last_date.json", JSON.stringify(last_date_json), (err) => {
       console.log(err || "We have successfully updated the last_date JSON file!");
     });
 
+  } else {
+    console.log("No new commits to track")
+  }
 
   } catch (error) {
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
