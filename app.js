@@ -3,15 +3,22 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 
 const octokit = new Octokit();
+const created_date = "2023-03-16T00:00:00Z"
 
 async function generateCSVFilebyLatestCommitsTracked(debug=false) {
   try {
-    // TODO: check if the CSV file with all commit data exists, if not, create it and ignore the "since feature"
-    // If it exist, retrieve the file locally and check the latest commit saved in the file (date). Write to it later
-
-    // If it does not exist, write to new file and ignore the "since feature"
+    // initialize variables with default values and attempt to get the date and file
     let csvContent = "city,temperature,timestamp\n";
-    let since = "2023-03-16T00:00:00Z";
+    let since = created_date;
+    const last_date_json = JSON.parse(fs.readFileSync("last_date.json", "utf8"));
+    const fileExist = fs.existsSync('city_temperature_data.csv');
+
+    // if the file exists and the date is valid, we read the file and get the date of the latest commit tracked to write to existing file and get new data
+    if (fileExist  && (last_date_json["last_date"] && moment(last_date_json["last_date"], "YYYY/MM/DDTHH:MM:SSZ", true).isValid())) {
+      csvContent = fs.readFileSync("city_temperature_data.csv", "utf8");
+      since = last_date_json;
+      console.log(city_temperature_file)
+    }
 
     // get all commits from the repository by owner and repo name
     if(!debug) {
@@ -27,6 +34,7 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
       const urls = result.data.map(item => item.url)
       var dates = result.data.map(item => item.commit.author.date)
       
+      
       // each URL contains another address information about the content of the commit, which is in another link, we get it and access the content of the commit
       var commitsContents= await Promise.all(urls.map(async url => {
         // 1. fetch URL in JSON that contains content-related data about the commit
@@ -39,6 +47,7 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
         return content.content;
       }
       ))
+      
 
   } else {
       var dates = ["2023-03-17T01:34:24Z",]
@@ -48,8 +57,6 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
     // decode the content of the commit and split by line break
     for (let i = 0; i < commitsContents.length; i++) {
       let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('ascii').split("/\r?\n/");
-      console.log(`decodedContentCommit: ${decodedContent}`)
-      console.log(`datesCommit: ${dates[i]}`)
 
       //  for each loop of the decodedContent
       for(let j = 1; j < decodedContent.length; j++) {
@@ -64,11 +71,18 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
         }
     }
   }
+    
 
-    // export CSV file
-    fs.writeFile("city_temperature_data.csv", csvContent, (err) => {
+    // export CSV file and update contents of the last_date JSON file
+    fs.writeFileSync("city_temperature_data.csv", csvContent, (err) => {
       console.log(err || "We have successfully updated the CSV file!");
     });
+
+    last_date_json["last_date"] = dates[dates.length - 1];
+    fs.writeFileSync("last_date.json", last_date_json, (err) => {
+      console.log(err || "We have successfully updated the last_date JSON file!");
+    });
+
 
   } catch (error) {
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
@@ -79,3 +93,4 @@ async function generateCSVFilebyLatestCommitsTracked(debug=false) {
 // run file
 generateCSVFilebyLatestCommitsTracked(true);
 
+       
