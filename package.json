@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/ahn-nath/configuration-evolution-over-time.time-machine#readme",
   "dependencies": {
+    "dotenv": "^16.0.3",
     "moment": "^2.29.4",
     "node-fetch": "^3.3.1",
     "octokit": "^2.0.14"

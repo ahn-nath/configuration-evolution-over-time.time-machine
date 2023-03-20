@@ -1,11 +1,15 @@
 import { Octokit } from "octokit"
 import fetch from 'node-fetch';
 import fs from 'fs';
+import * as dotenv from 'dotenv';
 
-const octokit = new Octokit({ auth: process.env.GITHUB_API_TOKEN });
+// constants
 const created_date = "2023-03-17T01:34:24Z"
 const input_folder = "input_folder/";
 const output_folder = "output_folder/";
+// init
+const octokit = new Octokit({ auth: process.env.GITHUB_API_TOKEN });
+dotenv.config()
 
 
 /*
@@ -136,8 +140,6 @@ export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city
   }
 }
 
-
-
 // run file
-generateCSVFilebyLatestCommitsTracked(false);
+generateCSVFilebyLatestCommitsTracked();
 
