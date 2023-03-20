@@ -10,7 +10,7 @@ This project is a time machine for CSV files. It allows you to
 
 Essentially, it works as a parser, which reads the data into a native structure in memory and plays back the data repository's git history to parse the data at each commit, storing the entire sequence in memory along with the timestamp of the git commit. It uses the GitHub API to access the git history of the data repository.
 
-As of now, it uses the GitHub repository [Configuration Evolution Over Time: Source File](https://github.com/ahn-nath/configuration-evolution-over-time.source-file) as the primarily data source, but it can be easily extended to use other data sources.
+As of now, it uses the GitHub repository [Configuration Evolution Over Time: Source File](https://github.com/ahn-nath/configuration-evolution-over-time.source-file) as the primary data source, but it can be easily extended to use other data sources.
 
 ## Installation
 
