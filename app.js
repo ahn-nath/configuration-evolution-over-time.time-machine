@@ -6,14 +6,13 @@ const octokit = new Octokit({ auth: process.env.GITHUB_API_TOKEN });
 const created_date = "2023-03-17T01:34:24Z"
 
 
-
+/*
+  This function decodes the content of the commit and generates the CSV lines
+  @param commitsContents: array of strings that contains the content of the commit
+  @param dates: array of strings that contains the date of the commit
+  @return csvContent: string that contains the CSV lines
+*/
 function decodeContentAndGenerateCSVLines(commitsContents, dates) {
-  /*
-    This function decodes the content of the commit and generates the CSV lines
-    @param commitsContents: array of strings that contains the content of the commit
-    @param dates: array of strings that contains the date of the commit
-    @return csvContent: string that contains the CSV lines
-  */
 
   let csvContent = "";
 
@@ -37,11 +36,13 @@ function decodeContentAndGenerateCSVLines(commitsContents, dates) {
   return csvContent;
 }
 
-async function generateCSVFilebyLatestCommitsTracked(debug = false) {
-  /*
+/*
     This function generates a CSV file with the latest commits tracked
     @param debug: boolean that indicates if we want to debug the code 
-  */
+    @return: void
+*/
+async function generateCSVFilebyLatestCommitsTracked(debug = false) {
+
   try {
     // initialize variables with default values and attempt to get the date and file
     var csvContent = "city,temperature,timestamp\n";
