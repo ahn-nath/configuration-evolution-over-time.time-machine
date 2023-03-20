@@ -7,20 +7,48 @@ const created_date = "2023-03-17T01:34:24Z"
 
 
 /*
+  This function initializes the variables that will be used in the program
+  @param last_date_filename: string that contains the name of the file that contains the date of the last commit tracked
+  @param csv_filename: string that contains the name of the file that contains the CSV data
+  @return csvContent: string that contains the CSV lines
+  @return since: string that contains the date of the last commit tracked
+  @return last_date_json: object that contains the date of the last commit tracked
+*/
+export function initializeVariables(last_date_filename = "last_date.json", csv_filename = "city_temperature_data.csv") {
+  // initialize variables with default values 
+  var csvContent = "city,temperature,timestamp\n";
+  let since = created_date;
+
+  // attempt to get the date and file 
+  let last_date_json = JSON.parse(fs.readFileSync(last_date_filename, "utf8"));
+  const fileExist = fs.existsSync(csv_filename);
+  let date_is_valid = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/.test(last_date_json['last_date']);
+
+  // if the file exists and the date is valid, we read the file and get the date of the latest commit tracked to write to existing file and get new data
+  if (fileExist && date_is_valid) {
+    csvContent = fs.readFileSync("city_temperature_data.csv", "utf8");
+    since = last_date_json['last_date'];
+  }
+
+  return [csvContent, since, last_date_json];
+}
+
+
+/*
   This function decodes the content of the commit and generates the CSV lines
   @param commitsContents: array of strings that contains the content of the commit
   @param dates: array of strings that contains the date of the commit
   @return csvContent: string that contains the CSV lines
 */
-function decodeContentAndGenerateCSVLines(commitsContents, dates) {
+export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
 
   let csvContent = "";
 
   for (let i = 0; i < commitsContents.length; i++) {
     // decode the commit content (base64) and split by line break
-    let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('ascii').split("\n");
+    let decodedContent = Buffer.from(commitsContents[i], 'base64').toString('utf8').split("\n");
 
-    for (let j = 1; j < decodedContent.length; j++) {
+    for (let j = 0; j < decodedContent.length; j++) {
       /* We check if the line is valid by checking if it matches the regex below:
           // [a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+ : it catches any word that starts with a letter and has any number of letters, including accents from the Spanish language
           // (?:[\s-][a-zA-Z]+)* : after the first word, it catches any number of words that start with a space or a dash and have any number of letters (optional)
@@ -41,21 +69,12 @@ function decodeContentAndGenerateCSVLines(commitsContents, dates) {
     @param debug: boolean that indicates if we want to debug the code 
     @return: void
 */
-async function generateCSVFilebyLatestCommitsTracked(debug = false) {
+export async function generateCSVFilebyLatestCommitsTracked(debug = false) {
 
   try {
-    // initialize variables with default values and attempt to get the date and file
-    var csvContent = "city,temperature,timestamp\n";
-    let since = created_date;
-    let last_date_json = JSON.parse(fs.readFileSync("last_date.json", "utf8"));
-    const fileExist = fs.existsSync('city_temperature_data.csv');
-    let date_is_valid = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/.test(last_date_json['last_date']);
 
-    // if the file exists and the date is valid, we read the file and get the date of the latest commit tracked to write to existing file and get new data
-    if (fileExist && date_is_valid) {
-      csvContent = fs.readFileSync("city_temperature_data.csv", "utf8");
-      since = last_date_json['last_date'];
-    }
+    // initialize variables
+    let [csvContent, since, last_date_json] = initializeVariables();
 
     // get all commits from the repository by owner and repo name
     const result = await octokit.request("GET /repos/{owner}/{repo}/commits?path={path}&since={since}", {
@@ -114,6 +133,8 @@ async function generateCSVFilebyLatestCommitsTracked(debug = false) {
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
   }
 }
+
+
 
 // run file
 generateCSVFilebyLatestCommitsTracked(false);
