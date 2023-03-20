@@ -48,7 +48,7 @@ async function generateCSVFilebyLatestCommitsTracked(debug = false) {
     let since = created_date;
     let last_date_json = JSON.parse(fs.readFileSync("last_date.json", "utf8"));
     const fileExist = fs.existsSync('city_temperature_data.csv');
-    let date_is_valid = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/.test(last_date_json['last_date']); 
+    let date_is_valid = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/.test(last_date_json['last_date']);
 
     // if the file exists and the date is valid, we read the file and get the date of the latest commit tracked to write to existing file and get new data
     if (fileExist && date_is_valid) {
@@ -112,8 +112,6 @@ async function generateCSVFilebyLatestCommitsTracked(debug = false) {
   catch (error) {
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
   }
-
-
 }
 
 // run file
