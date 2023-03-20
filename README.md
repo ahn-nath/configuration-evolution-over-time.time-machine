@@ -6,7 +6,7 @@ This project is a time machine for CSV files. It allows you to
 * track changes in CSV files over time,
 * restore CSV files to a previous state,
 * compare CSV files to a previous state,
-* keep track of the last time a CSV file was changed and update it, accordingly without having to rewrite the data each time.
+* keep track of the last time a CSV file was changed and update it accordingly, without having to rewrite the data each time.
 
 Essentially, it works as a parser, which reads the data into a native structure in memory and plays back the data repository's git history to parse the data at each commit, storing the entire sequence in memory along with the timestamp of the git commit. It uses the GitHub API to access the git history of the data repository.
 
