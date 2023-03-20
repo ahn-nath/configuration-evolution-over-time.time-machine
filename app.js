@@ -4,6 +4,8 @@ import fs from 'fs';
 
 const octokit = new Octokit({ auth: process.env.GITHUB_API_TOKEN });
 const created_date = "2023-03-17T01:34:24Z"
+const input_folder = "input_folder/";
+const output_folder = "output_folder/";
 
 
 /*
@@ -20,13 +22,13 @@ export function initializeVariables(last_date_filename = "last_date.json", csv_f
   let since = created_date;
 
   // attempt to get the date and file 
-  let last_date_json = JSON.parse(fs.readFileSync(last_date_filename, "utf8"));
-  const fileExist = fs.existsSync(csv_filename);
+  let last_date_json = JSON.parse(fs.readFileSync(`${input_folder}${last_date_filename}`, "utf8"));
+  const fileExist = fs.existsSync(`${output_folder}${csv_filename}`);
   let date_is_valid = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}Z$/.test(last_date_json['last_date']);
 
   // if the file exists and the date is valid, we read the file and get the date of the latest commit tracked to write to existing file and get new data
   if (fileExist && date_is_valid) {
-    csvContent = fs.readFileSync("city_temperature_data.csv", "utf8");
+    csvContent = fs.readFileSync(`${output_folder}${csv_filename}`, "utf8");
     since = last_date_json['last_date'];
   }
 
@@ -69,12 +71,12 @@ export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
     @param debug: boolean that indicates if we want to debug the code 
     @return: void
 */
-export async function generateCSVFilebyLatestCommitsTracked(debug = false) {
+export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json") {
 
   try {
 
     // initialize variables
-    let [csvContent, since, last_date_json] = initializeVariables();
+    let [csvContent, since, last_date_json] = initializeVariables(last_date_filename, csv_filename);
 
     // get all commits from the repository by owner and repo name
     const result = await octokit.request("GET /repos/{owner}/{repo}/commits?path={path}&since={since}", {
@@ -116,7 +118,7 @@ export async function generateCSVFilebyLatestCommitsTracked(debug = false) {
     csvContent += decodeContentAndGenerateCSVLines(commitsContents, dates);
 
     // export CSV file and update contents of the last_date JSON file
-    fs.writeFileSync("city_temperature_data.csv", csvContent, (err) => {
+    fs.writeFileSync(`${output_folder}${csv_filename}` , csvContent, (err) => {
       console.log(err || "We have successfully updated the CSV file!");
     });
 
@@ -124,7 +126,7 @@ export async function generateCSVFilebyLatestCommitsTracked(debug = false) {
     let last_date = new Date(dates[dates.length - 1]);
     last_date.setSeconds(last_date.getSeconds() + 1);
     last_date_json["last_date"] = last_date.toISOString();
-    fs.writeFileSync("last_date.json", JSON.stringify(last_date_json), (err) => {
+    fs.writeFileSync(`${input_folder}${last_date_filename}`, JSON.stringify(last_date_json), (err) => {
       console.log(err || "We have successfully updated the last_date JSON file!");
     });
 
