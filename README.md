@@ -36,7 +36,7 @@ To avoid reaching the daily API rate limits while testing, you can create a pers
     GITHUB_TOKEN=your-personal-access-token
     ```
 
-**NOTE:**
+**Note:**
 
 If you just need to test the API, you can ignore the steps above and remove the `{ auth: process.env.GITHUB_API_TOKEN }` option from the [app.js](./app.js) file. You should easily find this in the first few lines of the file.
 
