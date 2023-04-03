@@ -45,7 +45,7 @@ If you just need to test the API, you can ignore the steps above and remove the 
 - clone this repository
   
     ```
-    git clone ahn-nath/configuration-evolution-over-time.time-machine
+    git clone https://github.com/ahn-nath/configuration-evolution-over-time.time-machine.git
     ```
 - install dependencies
     ```
