@@ -140,6 +140,3 @@ export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city
   }
 }
 
-// run file
-generateCSVFilebyLatestCommitsTracked();
-
