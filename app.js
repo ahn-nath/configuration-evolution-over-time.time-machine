@@ -39,7 +39,7 @@ export function initializeVariables(last_date_filename = "last_date.json", csv_f
   return [csvContent, since, last_date_json];
 }
 
-
+// ## NOTE: important reference for decoding: https://stackoverflow.com/questions/987372/what-is-the-format-of-a-patch-file
 /*
   This function decodes the content of the commit and generates the CSV lines
   @param commitsContents: array of strings that contains the content of the commit
@@ -75,7 +75,7 @@ export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
     @param debug: boolean that indicates if we want to debug the code 
     @return: void
 */
-export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json") {
+export async function generateCSVFileByLatestCommitsTracked(csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json") {
 
   try {
 
@@ -83,11 +83,16 @@ export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city
     let [csvContent, since, last_date_json] = initializeVariables(last_date_filename, csv_filename);
 
     // get all commits from the repository by owner and repo name
+    let page_number = 1
+    
+    // TODO: add for loop here to cover all pages
     const result = await octokit.request("GET /repos/{owner}/{repo}/commits?path={path}&since={since}", {
       owner: "ahn-nath",
       repo: "configuration-evolution-over-time.source-file",
       path: "city_temperature_track",
-      since: since
+      since: since,
+      page: page_number,
+      per_page: 100 // max allowed
     });
 
     // if there are no new commits, we return
@@ -106,11 +111,14 @@ export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city
 
     // each URL contains another address information about the content of the commit, which is in another link, we get it and access the content of the commit
     var commitsContents = await Promise.all(urls.map(async url => {
-      //  fetch URL in JSON that contains content-related data about the commit and return it
 
+      //  fetch URL in JSON that contains content-related data about the commit and return it
       const response = await (await fetch(url)).text();
       const body = JSON.parse(response);
 
+
+      // TODO: handle all files in list, also consider adding a DENY LIST as such /ALLOW_LIST = ['{}/mt-defaults.wikimedia.yaml'.format(PATH),
+      // '{}/MWPageLoader.yaml'.format(PATH), '{}/languages.yaml'.format(PATH),] 
       const contentsURLText = await (await fetch(body.files[0].contents_url)).text();
       const content = JSON.parse(contentsURLText);
 
@@ -139,4 +147,3 @@ export async function generateCSVFilebyLatestCommitsTracked(csv_filename = "city
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
   }
 }
-
