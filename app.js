@@ -4,10 +4,13 @@ import fs from 'fs';
 import * as dotenv from 'dotenv';
 
 // constants
-const created_date = "2023-03-17T01:34:24Z"
 const input_folder = "input_folder/";
 const output_folder = "output_folder/";
+// source #1: https://www.mediawiki.org/wiki/Content_translation/Machine_Translation/MT_Clients
+let allowed_files = ["Matxin.yaml", "Youdao.yaml", "Yandex.yaml", "Apertium.yaml", "Elia.yaml", "Flores.yaml", "Google.yaml", "OpusMT.yaml", "LingCloud.yaml"]
+
 // init
+console.log("TOKEN ", process.env.GITHUB_API_TOKEN)
 const octokit = new Octokit({ auth: process.env.GITHUB_API_TOKEN });
 dotenv.config()
 
@@ -20,7 +23,7 @@ dotenv.config()
   @return since: string that contains the date of the last commit tracked
   @return last_date_json: object that contains the date of the last commit tracked
 */
-export function initializeVariables(last_date_filename = "last_date.json", csv_filename = "city_temperature_data.csv") {
+export function initializeVariables(last_date_filename = "last_date.json", csv_filename = "city_temperature_data.csv", created_date = "2023-03-17T01:34:24Z") {
   // initialize variables with default values 
   var csvContent = "city,temperature,timestamp\n";
   let since = created_date;
@@ -72,9 +75,13 @@ export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
 
 /*
     This function generates a CSV file with the latest commits tracked
-    @param debug: boolean that indicates if we want to debug the code 
+    @param csv_filename: string that contains the name of the file that contains the CSV data
+    @param last_date_filename: string that contains the name of the file that contains the date of the last commit tracked
+  
     @return: void
 */
+
+/*
 export async function generateCSVFileByLatestCommitsTracked(csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json") {
 
   try {
@@ -147,3 +154,119 @@ export async function generateCSVFileByLatestCommitsTracked(csv_filename = "city
     console.log(`Error! Status: ${error.status}. Message: ${error}`)
   }
 }
+*/
+
+
+/*
+    TODO: refactor first and see if you can combine this function with the one above
+    This function generates a CSV file with the latest commits tracked
+    @param content_proccessing_type: integer that contains the type of content processing to be done, as of know we have 2 types:
+        1. 1: it will process file content in base64 format
+        2. 2: it will process file content in git patch format
+    @param csv_filename: string that contains the name of the file that contains the CSV data
+    @param last_date_filename: string that contains the name of the file that contains the date of the last commit tracked
+    @param repo_owner: string that contains the name of the owner of the repository
+    @param repo_name: string that contains the name of the repository
+    @param repo_path: string that contains the path of the repository
+
+
+    @return: void
+*/
+export async function generateCSVFileByLatestCommitsTracked(content_proccessing_type, allowed_files, csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json", repo_owner = "ahn-nath", repo_name = "configuration-evolution-over-time.source-file", repo_path = "city_temperature_track", created_date) {
+
+ 
+
+    // initialize variables
+    let [csvContent, since, last_date_json] = initializeVariables(last_date_filename, csv_filename);
+    // get all commits from the repository by owner and repo name
+    let page_number = 1
+    let should_continue = true
+    
+    // we use a loop to get all pages
+    while(should_continue){
+
+      try {
+        const result = await octokit.request("GET /repos/{owner}/{repo}/commits?path={path}&since={since}", {
+          owner: repo_owner,
+          repo: repo_name,
+          path: repo_path,
+          since: since,
+          page: page_number,
+          per_page: 100 // max allowed
+        });
+
+        // if there are no new commits, we return
+        if (result.data.length == 0 && result.status == 200) {
+          console.log("No new commits to track")
+          return
+        }
+        // raise exception if there is an error
+        if (result.status != 200) {
+          throw new Error(result);
+        }
+        // retrieve all content URLS and dates of commits
+        const urls = result.data.map(item => item.url);
+        var dates = result.data.map(item => item.commit.author.date);
+
+
+        // each URL contains another address information about the content of the commit, which is in another link, we get it and access the content of the commit
+        var commitsContents = await Promise.all(urls.map(async url => {
+
+          //  fetch URL in JSON that contains content-related data about the commit and return it
+          const response = await (await fetch(url)).text();
+          const body = JSON.parse(response);
+          
+          // return the files that are in the allowed list
+          const files = body.files.filter(file => allowed_files.includes(file.filename));
+
+          // we return the files, which allows for flexibility on whether to get the raw content or the git patch of the file 
+          return files;
+        }
+        ));
+        /*
+        commitsContents+=
+        dates+=
+
+        /*NOTE: skip until we test getting all the commits. We could do it only after everything is processed
+        // decode the content of the commit and generate the CSV lines ... here you select the processing type
+        csvContent += decodeContentAndGenerateCSVLines(commitsContents, dates);
+
+        // export CSV file and update contents of the last_date JSON file
+        fs.writeFileSync(`${output_folder}${csv_filename}` , csvContent, (err) => {
+          console.log(err || "We have successfully updated the CSV file!");
+        });
+
+        // update the last_date JSON file
+        let last_date = new Date(dates[dates.length - 1]);
+        last_date.setSeconds(last_date.getSeconds() + 1);
+        last_date_json["last_date"] = last_date.toISOString();
+        fs.writeFileSync(`${input_folder}${last_date_filename}`, JSON.stringify(last_date_json), (err) => {
+          console.log(err || "We have successfully updated the last_date JSON file!");
+        });
+        */
+
+        // check the header of the response to see if there is a next page
+        const link = result.headers.link;
+        if (link.includes('rel="next"')){
+          page_number += 1
+        }
+        else{
+          should_continue = false
+        }
+
+        console.log("page number: ", page_number)
+
+    }
+
+    catch (error) {
+      console.log(`Error! Status: ${error.status}. Message: ${error}`)
+    }
+
+}
+
+
+}
+
+
+generateCSVFileByLatestCommitsTracked(2, allowed_files,
+  "MT_availability_timestamps.csv", "last_date_MT.json", "wikimedia", "mediawiki-services-cxserver", "/config", "2017-08-30T09:07:55Z")
