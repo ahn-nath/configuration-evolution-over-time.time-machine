@@ -45,7 +45,7 @@ export function initializeVariables(last_date_filename = "last_date.json", csv_f
   @param dates: array of strings that contains the date of the commit
   @return csvContent: string that contains the CSV lines
 */
-export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
+export function decodeContentAndGenerateCSVLinesBase64(commitsContents, dates) {
 
   let csvContent = "";
 
@@ -69,6 +69,35 @@ export function decodeContentAndGenerateCSVLines(commitsContents, dates) {
   return csvContent;
 }
 
+export function decodeContentAndGenerateCSVLinesGitPatch(commitsContents, dates){
+  
+    let csvContent = "";
+    let commitFilesDictionary = {};
+  
+    for (let i = 0; i < commitsContents.length; i++) {
+      
+      let commitFilesArr = commitsContents[i];
+
+      // iterate over files in the commit
+      for (let j = 0; j < commitFilesArr.length; j++) {
+        // get the file name and the file content as an array of strings
+        file = commitFilesArr[j];
+        let fileName = file.filename.split("/").at(-1)
+        let fileContent = file.patch.split("\n");
+        //split by line break and add to files dictionary
+        commitFilesDictionary[fileName] = fileContent;
+
+      }
+      // process all files of this commit with function to generate CSV lines
+      let decodedContent = "";
+      csvContent += decodedContent[j] + "," + dates[i] + "\n";
+      
+      }
+    }
+  
+    return csvContent;
+  
+}
 
 export async function generateCSVFileByLatestCommitsTracked(content_proccessing_type, allowed_files, csv_filename = "city_temperature_data.csv", last_date_filename = "last_date.json", repo_owner = "ahn-nath", repo_name = "configuration-evolution-over-time.source-file", repo_path = "city_temperature_track", created_date) {
 
@@ -144,7 +173,11 @@ export async function generateCSVFileByLatestCommitsTracked(content_proccessing_
  
 }
 
+// split string by line break
+let st = "@@ -0,0 +1,21 @@\n+en:\n+  - zh\n+es:\n+  - zh\n+fr:\n+  - zh\n+ja:\n+  - zh\n+ko:\n+  - zh\n+pt:\n+  - zh\n+ru:\n+  - zh\n+zh:\n+  - es\n+  - fr\n+  - ja\n+  - ko\n+  - pt\n+  - ru";
+console.log(st);
+console.log(st.split("\n"));
 
 
-generateCSVFileByLatestCommitsTracked(2, allowed_files,
-  "MT_availability_timestamps.csv", "last_date_MT.json", "wikimedia", "mediawiki-services-cxserver", "/config", "2017-08-30T09:07:55Z")
+//generateCSVFileByLatestCommitsTracked(2, allowed_files,
+ // "MT_availability_timestamps.csv", "last_date_MT.json", "wikimedia", "mediawiki-services-cxserver", "/config", "2017-08-30T09:07:55Z")
