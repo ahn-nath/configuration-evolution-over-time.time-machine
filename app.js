@@ -1,5 +1,6 @@
 import { Octokit } from "octokit"
 import fs from 'fs';
+import { decodeContentAndGenerateCSVLinesGitPatchHelper } from "./process_yaml_files.js";
 
 // constants
 const input_folder = "input_folder/";
@@ -89,10 +90,11 @@ export function decodeContentAndGenerateCSVLinesGitPatch(commitsContents, dates)
 
       }
       // process all files of this commit with function to generate CSV lines
-      let decodedContent = "";
-      csvContent += decodedContent[j] + "," + dates[i] + "\n";
+      let decodedContent = decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, dates[i]);
+      // array to string
+      csvContent += decodedContent.join("\n");
       
-      }
+      
     }
   
     return csvContent;
