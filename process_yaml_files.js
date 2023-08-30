@@ -7,7 +7,7 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
     // iterate over files in the commit
     for (let fileName in commitFilesDictionary) {
         // engine is the first word of the file name
-        let engine = fileName.split(".")[0];
+        let engine = fileName.split(".yaml")[0];
         let lines = commitFilesDictionary[fileName];
 
         // if "languages" is in lines, non-standard input
@@ -15,21 +15,23 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
 
         if(standard){
             // while the lines being evaluated is valid and the index is not last
-            // user regex to check line validity: it should be a word, followed by a colon
+            // use regex to check line validity: it should be a word, followed by a colon
             let regexSource = /[a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+:/;
-            let regexTarget = /[a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+:/;
-            let index = 0;
+            // the target should be a word preceded by a space and a dash
+            let regexTarget = /\s - [a-zA-Z]+/;
+            let index = 1; // the first line is the patch info
             let sourceValid = regexSource.test(lines[index]);
-            while(sourceValid && index < lines.length - 1){
+            while(sourceValid && index < lines.length){
                 // initially, we assume the target is valid
-                while(index < lines.length - 1){
-                    let source = lines[index].split(":")[0];
+                let source = lines[index].split(":")[0].replace(/\+|-/, "");
+                index++;
+                while(index < lines.length){
                     let targetValid = regexTarget.test(lines[index]);
 
                     if(targetValid){
                         // add new line
-                        let target = lines[index].split("-")[1];
-                        let newLine  = source + "," + target + "," + date + "," + engine; // TODO: add the status
+                        let [operation_status, target] = lines[index].split("-");
+                        let newLine = `${engine},${source},${target.trim()},${date},${operation_status.trim()}`;
                         csvContent.push(newLine);
                     }else{
                         // if the target is not valid, we break the loop and go to the next source
