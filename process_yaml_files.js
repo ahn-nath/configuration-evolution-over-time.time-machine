@@ -30,7 +30,7 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
 
                     if(targetValid){
                         // add new line
-                        let [operation_status, target] = lines[index].split("-");
+                        let [operation_status, target] = lines[index].split("-"); // TODO: find a better way to split the target when there are multiple "-"
                         let newLine = `${engine},${source},${target.trim()},${date},${operation_status.trim()}`;
                         csvContent.push(newLine);
                     }else{
@@ -48,6 +48,17 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
             // restrictions
             let english_variants = ['en', 'simple'];
             let not_as_target = [];
+
+            // skip the first line
+            let index = 1;
+            // if the next line includes "notAsTarget", get the languages
+            if(lines[index].includes("notAsTarget")){
+                while(!lines[index].includes("languages")){
+                    index++;
+                    let not_as_target_lang = lines[index].split(" - ")[1].trim();
+                    not_as_target.push(not_as_target_lang);
+                }
+            }
 
             // iterate over each language and get the source and target languages
             for (let lang in languages) {
