@@ -11,7 +11,7 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
         let lines = commitFilesDictionary[fileName];
 
         // if "languages" is in lines, non-standard input
-        let standard = "languages" in lines? false: true;
+        let standard = ["+languages:", "-languages:", "languages:"].some(r=> lines.includes(r)) ? false: true;
 
         if(standard){
             // while the lines being evaluated is valid and the index is not last
@@ -30,7 +30,7 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
 
                     if(targetValid){
                         // add new line
-                        let [operation_status, target] = lines[index].split("-"); // TODO: find a better way to split the target when there are multiple "-"
+                        let [operation_status, target] = lines[index].split(" - "); // TODO: find a better way to split the target when there are multiple "-"
                         let newLine = `${engine},${source},${target.trim()},${date},${operation_status.trim()}`;
                         csvContent.push(newLine);
                     }else{
@@ -52,8 +52,9 @@ export function decodeContentAndGenerateCSVPatchHelper(commitFilesDictionary, da
             // skip the first line
             let index = 1;
             // if the next line includes "notAsTarget", get the languages
-            if(lines[index].includes("notAsTarget")){
-                while(!lines[index].includes("languages")){
+            let linesIncludesNotAsTarget = ["+notAsTarget:", "notAsTarget:", "-notAsTarget"].some(r=> lines.includes(r));
+            if(linesIncludesNotAsTarget){
+                while(!lines[index].includes("languages:", 1)){
                     index++;
                     let not_as_target_lang = lines[index].split(" - ")[1].trim();
                     not_as_target.push(not_as_target_lang);
